@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/../项目/20190414/.idea/20190414.iml" filepath="$PROJECT_DIR$/../项目/20190414/.idea/20190414.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/LogisticCircuit.iml" filepath="$PROJECT_DIR$/.idea/LogisticCircuit.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../VisualizingCNN/.idea/VisualizingCNN.iml" filepath="$PROJECT_DIR$/../VisualizingCNN/.idea/VisualizingCNN.iml" />
+      <module fileurl="file://F:/Python--数据挖掘/Python3数据分析与挖掘建模实战/project/.idea/project.iml" filepath="F:/Python--数据挖掘/Python3数据分析与挖掘建模实战/project/.idea/project.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../代码学习/.idea/代码学习.iml" filepath="$PROJECT_DIR$/../代码学习/.idea/代码学习.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../项目/.idea/项目.iml" filepath="$PROJECT_DIR$/../项目/.idea/项目.iml" />
+    </modules>
+  </component>
+</project>
