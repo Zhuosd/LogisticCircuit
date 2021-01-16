@@ -62,6 +62,7 @@ class LogisticCircuit(object):
     def parameters(self):
         return self._parameters
 
+    # 获取全部叶子节点的个数
     def _generate_all_terminal_nodes(self, vtree: Vtree):
         if vtree.is_leaf():
             var_index = vtree.var
@@ -69,6 +70,7 @@ class LogisticCircuit(object):
             self._terminal_nodes[var_index - 1] = CircuitTerminal(
                 self._largest_index, vtree, var_index, LITERAL_IS_TRUE, np.random.random_sample(size=(self._num_classes,))
             )
+
             self._largest_index += 1
             self._terminal_nodes[self._num_variables + var_index - 1] = CircuitTerminal(
                 self._largest_index, vtree, var_index, LITERAL_IS_FALSE, np.random.random_sample(size=(self._num_classes,))
@@ -77,12 +79,15 @@ class LogisticCircuit(object):
             self._generate_all_terminal_nodes(vtree.left)
             self._generate_all_terminal_nodes(vtree.right)
 
+    # 逻辑回归的叶子节点切分技巧
+    # 整棵树不断循环递归调用
     def _new_logistic_psdd(self, vtree) -> CircuitNode:
         left_vtree = vtree.left
         right_vtree = vtree.right
         prime_variable = left_vtree.var
         sub_variable = right_vtree.var
         elements = list()
+        # 如果左右节点都为叶子节点
         if left_vtree.is_leaf() and right_vtree.is_leaf():
             elements.append(
                 AndGate(
@@ -112,6 +117,7 @@ class LogisticCircuit(object):
                     np.random.random_sample(size=(self._num_classes,)),
                 )
             )
+        # 若左节点为叶子节点
         elif left_vtree.is_leaf():
             elements.append(
                 AndGate(
@@ -129,6 +135,7 @@ class LogisticCircuit(object):
             )
             for element in elements:
                 element.splittable_variables = copy.deepcopy(right_vtree.variables)
+        # 若右节点为叶子节点
         elif right_vtree.is_leaf():
             elements.append(
                 AndGate(
@@ -146,6 +153,7 @@ class LogisticCircuit(object):
             )
             for element in elements:
                 element.splittable_variables = copy.deepcopy(left_vtree.variables)
+        # 两边都不是叶子节点
         else:
             elements.append(
                 AndGate(
@@ -159,6 +167,7 @@ class LogisticCircuit(object):
         root = OrGate(self._largest_index, vtree, elements)
         return root
 
+    #
     def _serialize(self):
         """Serialize all the decision nodes in the logistic psdd.
            Serialize all the elements in the logistic psdd. """
@@ -188,37 +197,48 @@ class LogisticCircuit(object):
             self._parameters = np.concatenate((self._parameters, element.parameter.reshape(-1, 1)), axis=1)
         gc.collect()
 
+    # 记录所学习的参数
     def _record_learned_parameters(self, parameters):
+        # 使用copy.deepcopy()拷贝不可变对象的值，以及复制以后修改其值后的变化
         self._parameters = copy.deepcopy(parameters)
         self._bias = self._parameters[:, 0]
         for i in range(len(self._terminal_nodes)):
             self._terminal_nodes[i].parameter = self._parameters[:, i + 1]
         for i in range(len(self._elements)):
             self._elements[i].parameter = self._parameters[:, i + 1 + 2 * self._num_variables]
+        # 垃圾回收机制
         gc.collect()
 
+    # 计算不同特征的情况
     def calculate_features(self, images: np.array):
         num_images = images.shape[0]
+        # OrGate 结构
         for terminal_node in self._terminal_nodes:
             terminal_node.calculate_prob(images)
+        # OrGate 结构
         for decision_node in reversed(self._decision_nodes):
             decision_node.calculate_prob()
         self._root.feature = np.ones(shape=(num_images,), dtype=np.float32)
+        # Orgate 结构
         for decision_node in self._decision_nodes:
             decision_node.calculate_feature()
         # bias feature
         bias_features = np.ones(shape=(num_images,), dtype=np.float32)
+
         terminal_node_features = np.vstack([terminal_node.feature for terminal_node in self._terminal_nodes])
         element_features = np.vstack([element.feature for element in self._elements])
         features = np.vstack((bias_features, terminal_node_features, element_features))
+
         for terminal_node in self._terminal_nodes:
             terminal_node.feature = None
             terminal_node.prob = None
         for element in self._elements:
             element.feature = None
             element.prob = None
+
         return features.T
 
+    # 挑选相关的元素或参数进行切分
     def _select_element_and_variable_to_split(self, data, num_splits):
         y = self.predict_prob(data.features)
         if self._num_classes == 1:
@@ -293,6 +313,7 @@ class LogisticCircuit(object):
         original_element.remove_splittable_variable(variable)
         original_prime = original_element.prime
         original_sub = original_element.sub
+
         if current_depth >= max_depth:
             if variable in original_prime.vtree.variables:
                 original_prime, copied_prime = self._copy_and_modify_node_for_split(
@@ -312,11 +333,13 @@ class LogisticCircuit(object):
                 original_prime, variable, current_depth, max_depth
             )
             original_sub, copied_sub = self._copy_and_modify_node_for_split(original_sub, variable, current_depth, max_depth)
+
         if copied_prime is not None and copied_sub is not None:
             copied_element = AndGate(copied_prime, copied_sub, copy.deepcopy(original_element.parameter))
             copied_element.splittable_variables = copy.deepcopy(original_element.splittable_variables)
         else:
             copied_element = None
+
         if original_prime is not None and original_sub is not None:
             original_element.prime = original_prime
             original_element.sub = original_sub
@@ -407,12 +430,16 @@ class LogisticCircuit(object):
     def calculate_accuracy(self, data):
         """Calculate accuracy given the learned parameters on the provided data."""
         y = self.predict(data.features)
+        # print("calculate_accuracyy",y)
+        # print(y.shape)
         accuracy = np.sum(y == data.labels) / data.num_samples
         return accuracy
 
     def predict(self, features):
         y = self.predict_prob(features)
         if self._num_classes > 1:
+            # 【0.1,0.3，0.5】
+            # [3]
             return np.argmax(y, axis=1)
         else:
             return (y > 0.5).astype(int).ravel()
@@ -420,11 +447,15 @@ class LogisticCircuit(object):
     def predict_prob(self, features):
         """Predict the given images by providing their corresponding features."""
         y = 1.0 / (1.0 + np.exp(-np.dot(features, self._parameters.T)))
+        # print("predict_proby",y)
         return y
 
     def learn_parameters(self, data, num_iterations, num_cores=-1):
         """Logistic Psdd's parameter learning is reduced to logistic regression.
-        We use mini-batch SGD to optimize the parameters."""
+        We use mini-batch SGD to optimize the parameters.        """
+        # Logistic Psdd的参数学习简化为Logistic回归。
+        # 我们使用小批量SGD优化参数
+
         model = LogisticRegression(
             solver="saga",
             fit_intercept=False,
@@ -478,6 +509,7 @@ class LogisticCircuit(object):
                 unvisited_vtree_nodes.append(node.right)
 
         # extract the saved logistic circuit
+        # 提取保存的逻辑电路
         nodes = dict()
         line = f.readline()
         while line[0] == "T" or line[0] == "F":
@@ -530,7 +562,7 @@ class LogisticCircuit(object):
             line = f.readline()
 
         if line[0] != "B":
-            raise ValueError("The last line in a circuit file must record the bias parameters.")
+            raise ValueError("电路文件的最后一行必须记录偏置参数.")
         self._bias = np.array([float(x) for x in line.strip().split(" ")[1:]], dtype=np.float32)
 
         gc.collect()

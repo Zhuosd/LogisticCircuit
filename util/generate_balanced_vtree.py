@@ -2,9 +2,7 @@
 Generate a balanced vtree.
 It takes two arguments: 1) the number of input variables in your dataset 2) the file name to store the vtree.
 '''
-
 import argparse
-
 
 VTREE_FORMAT = """c ids of vtree nodes start at 0
 c ids of variables start at 1
@@ -16,7 +14,6 @@ c L id-of-leaf-vtree-node id-of-variable
 c I id-of-internal-vtree-node id-of-left-child id-of-right-child
 c
 """
-
 
 FLAGS = None
 

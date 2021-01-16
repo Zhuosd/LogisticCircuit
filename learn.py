@@ -6,8 +6,7 @@ from algo.LogisticCircuit import LogisticCircuit
 from structure.Vtree import Vtree
 from util.mnist_data import read_data_sets
 
-FLAGS = None
-
+FLAGS = 'None'
 
 def main():
     # read dataset and vtree
@@ -23,12 +22,14 @@ def main():
     else:
         circuit = LogisticCircuit(vtree, FLAGS.num_classes)
         data.train.features = circuit.calculate_features(data.train.images)
-        circuit.learn_parameters(data.train, 50)
+        print("Start to Create New LG Model")
+        circuit.learn_parameters(data.train, 5)
 
     print(f"The starting circuit has {circuit.num_parameters} parameters.")
     data.valid.features = circuit.calculate_features(data.valid.images)
     data.test.features = circuit.calculate_features(data.test.images)
     valid_accuracy = circuit.calculate_accuracy(data.valid)
+
     print(
         f"Its performance is as follows. "
         f"Training accuracy: {circuit.calculate_accuracy(data.train):.5f}\t"
@@ -67,44 +68,35 @@ def main():
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--data_path", type=str, help="Directory for the stored input data.")
-    parser.add_argument("--num_classes", type=int, help="Number of classes in the classification task.")
+    parser = argparse.ArgumentParser("This is .....")
+    parser.add_argument("--data_path",default="D:\\Code\\Python-Coding\\LogisticCircuit\\util\\",
+                        type=str, help="Directory for the stored input data.")
+    #
+    parser.add_argument("--num_classes", type=int,default=10, help="Number of classes in the classification task.")
+
+    # 输入的图片，像素维度不是28*28，就可以修改这个文件
     parser.add_argument("--vtree", type=str, default="balanced.vtree", help="Path for vtree.")
-    parser.add_argument(
-        "--circuit",
-        type=str,
-        default="",
+
+    parser.add_argument("--circuit",type=str,default="",
         help="[Optional] File path for the saved logistic circuit to load. "
-        "Note this circuit has to be based on the same vtree as provided in --vtree.",
-    )
-    parser.add_argument(
-        "--num_structure_learning_iterations",
-        type=int,
-        default=5000,
-        help="[Optional] Num of iterations for structure learning. Its default value is 5000.",
-    )
-    parser.add_argument(
-        "--num_parameter_learning_iterations",
-        type=int,
-        default=15,
-        help="[Optional] Number of iterations for parameter learning after the structure is changed."
-        "Its default value is 15.",
-    )
+             "Note this circuit has to be based on the same vtree as provided in --vtree.",)
+
+    parser.add_argument("--num_structure_learning_iterations",type=int,default=5,
+        help="[Optional] Num of iterations for structure learning. Its default value is 5000.",)
+
+    parser.add_argument("--num_parameter_learning_iterations",type=int,default=15,
+        help="[Optional] Number of iterations for parameter learning after the structure is changed.Its default value is 15.",)
+
     parser.add_argument("--depth", type=int, default=2, help="[Optional] The depth of every split. Its default value is 2.")
-    parser.add_argument(
-        "--num_splits",
-        type=int,
-        default=3,
-        help="[Optional] The number of splits in one iteration of structure learning." "It default value is 3.",
-    )
-    parser.add_argument(
-        "--percentage",
-        type=float,
-        default=1.0,
-        help="[Optional] The percentage of the training dataset that will be used. " "Its default value is 100%%.",
-    )
-    parser.add_argument("--save_path", type=str, default="", help="[Optional] File path to save the best-performing circuit.")
+
+    parser.add_argument("--num_splits",type=int,default=3,
+        help="[Optional] The number of splits in one iteration of structure learning.It default value is 3.",)
+
+    parser.add_argument("--percentage",type=float,default=0.2,
+        help="[Optional] The percentage of the training dataset that will be used. " "Its default value is 100%%.",)
+
+    parser.add_argument("--save_path", type=str, default="./test_image", help="[Optional] File path to save the best-performing circuit.")
+
     FLAGS = parser.parse_args()
     if FLAGS.num_classes == 2:
         FLAGS.num_classes = 1
@@ -113,4 +105,5 @@ if __name__ == "__main__":
             + "and hence we automatically modify it to be 1 to be better compatible with sklearn."
         )
         warnings.warn(message, stacklevel=2)
+
     main()

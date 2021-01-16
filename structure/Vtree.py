@@ -43,6 +43,7 @@ class Vtree(ABC):
             return root
 
 
+# 判断是否为叶子节点
 class VtreeLeaf(Vtree):
 
     def __init__(self, index, variable):
@@ -61,7 +62,7 @@ class VtreeLeaf(Vtree):
     def variables(self):
         return set([self._var])
 
-
+# 判断是否为中心节点
 class VtreeIntermediate(Vtree):
 
     def __init__(self, index, left, right):

@@ -14,27 +14,28 @@ import numbers
 import warnings
 
 import numpy as np
+from joblib import Parallel, delayed
 from scipy import optimize, sparse
-from scipy.special import expit
+from scipy.special import expit, logsumexp
 
 from sklearn.linear_model.base import LinearClassifierMixin, SparseCoefMixin, BaseEstimator
 from sklearn.linear_model.sag import sag_solver
+from sklearn.metrics import get_scorer
 from sklearn.preprocessing import LabelEncoder, LabelBinarizer
 from sklearn.svm.base import _fit_liblinear
-from sklearn.utils import check_array, check_consistent_length, compute_class_weight
+from sklearn.utils import check_array, check_consistent_length, compute_class_weight, _joblib
 from sklearn.utils import check_random_state
-from sklearn.utils.extmath import (log_logistic, safe_sparse_dot, softmax,
-                             squared_norm)
+from sklearn.utils.extmath import (log_logistic, safe_sparse_dot, softmax,squared_norm)
 from sklearn.utils.extmath import row_norms
-from sklearn.utils.fixes import logsumexp
+# from sklearn.utils.fixes import logsumexp
 from sklearn.utils.optimize import newton_cg
 from sklearn.utils.validation import check_X_y
-from sklearn.exceptions import NotFittedError
+from sklearn.exceptions import NotFittedError, ChangedBehaviorWarning, ConvergenceWarning
 from sklearn.utils.multiclass import check_classification_targets
-from sklearn.externals.joblib import Parallel, delayed, effective_n_jobs
+# from sklearn.externals.joblib import Parallel, delayed, effective_n_jobs
 from sklearn.model_selection import check_cv
-from sklearn.externals import six
-
+# from sklearn.externals import six
+import six
 
 # .. some helper functions for logistic_regression_path ..
 def _joblib_parallel_args(**kwargs):

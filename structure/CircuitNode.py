@@ -1,6 +1,5 @@
 import numpy as np
 
-
 class CircuitNode(object):
 
     def __init__(self, index, vtree):
@@ -51,7 +50,6 @@ class CircuitNode(object):
 class OrGate(CircuitNode):
     """OR Gate.
        Or gates are also referred as Decision nodes."""
-
     def __init__(self, index, vtree, elements):
         super().__init__(index, vtree)
         self._elements = elements
@@ -71,7 +69,7 @@ class OrGate(CircuitNode):
 
     def calculate_prob(self):
         if len(self._elements) == 0:
-            raise ValueError("Decision nodes should have at least one elements.")
+            raise ValueError("决策节点应至少包含一个元素.")
         for element in self._elements:
             element.calculate_prob()
         self._prob = np.sum([np.exp(element.prob) for element in self._elements], axis=0)
@@ -98,13 +96,11 @@ class OrGate(CircuitNode):
             f.write(f')')
         f.write('\n')
 
-
 LITERAL_IS_TRUE = 1
 LITERAL_IS_FALSE = 0
 
-
 class CircuitTerminal(CircuitNode):
-    """Terminal(leaf) node."""
+    """终端（叶子）节点Terminal(leaf) node."""
 
     def __init__(self, index, vtree, var_index, var_value, parameter=None):
         super().__init__(index, vtree)
@@ -142,7 +138,7 @@ class CircuitTerminal(CircuitNode):
         elif self._var_value == LITERAL_IS_FALSE:
             self._prob = np.log(1.0 - samples[:, self._var_index - 1])
         else:
-            raise ValueError('Terminal nodes should either be positive literals or negative literals.')
+            raise ValueError('终端节点应为正文字或负文字.')
         self._feature = np.zeros(shape=self._prob.shape, dtype=np.float32)
 
     def save(self, f):
@@ -151,7 +147,7 @@ class CircuitTerminal(CircuitNode):
         elif self._var_value == LITERAL_IS_FALSE:
             f.write(f'F {self._index} {self._vtree.index} {self._var_index}')
         else:
-            raise ValueError('Currently we only support terminal nodes that are either positive or negative literals.')
+            raise ValueError('目前，我们仅支持正或负文字的终端节点.')
         for parameter in self._parameter:
             f.write(f' {parameter}')
         f.write('\n')
